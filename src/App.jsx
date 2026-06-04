@@ -1,121 +1,113 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import heroImg from './assets/hero.png'
+import { useSimulator } from './hooks/useSimulator'
+import Control from './components/Control'
+import GanttChart from './components/GanttChart'
+import ProcessTable from './components/ProcessTable'
 import './App.css'
 
+function MetricCard({ label, value, unit }) {
+  return (
+    <div className="metric-card">
+      <span>{label}</span>
+      <strong>
+        {value}
+        {unit && <small>{unit}</small>}
+      </strong>
+    </div>
+  )
+}
+
 function App() {
-  const [count, setCount] = useState(0)
+  const {
+    processes,
+    algorithm,
+    algorithmOptions,
+    timeQuantum,
+    simulation,
+    addProcess,
+    updateProcess,
+    removeProcess,
+    resetProcesses,
+    setAlgorithm,
+    setTimeQuantum,
+  } = useSimulator()
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
+    <main className="app-shell">
+      <header className="app-header">
         <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
+          <p className="eyebrow">CPU Scheduling Simulator</p>
+          <h1>Mô phỏng lập lịch CPU</h1>
         </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
+        <div className="status-pill">
+          <span className="status-dot"></span>
+          Tự động cập nhật
+        </div>
+      </header>
+
+      <section className="simulator-grid" aria-label="Bố cục mô phỏng lập lịch CPU">
+        <section className="panel process-panel" aria-label="Nhập tiến trình">
+          <ProcessTable
+            processes={processes}
+            onAdd={addProcess}
+            onUpdate={updateProcess}
+            onRemove={removeProcess}
+          />
+        </section>
+
+        <section className="panel gantt-panel" aria-label="Biểu đồ Gantt">
+          <GanttChart timeline={simulation.timeline} totalTime={simulation.metrics.totalTime} />
+        </section>
+
+        <section className="panel control-panel" aria-label="Chọn thuật toán">
+          <Control
+            algorithm={algorithm}
+            algorithms={algorithmOptions}
+            timeQuantum={timeQuantum}
+            onAlgorithmChange={setAlgorithm}
+            onQuantumChange={setTimeQuantum}
+            onReset={resetProcesses}
+          />
+        </section>
+
+        <section className="panel metrics-panel" aria-label="Thông số hiệu năng">
+          <div className="panel-heading">
+            <div>
+              <p className="section-label">Kết quả</p>
+              <h2>Thông số hiệu năng</h2>
+            </div>
+          </div>
+
+          <div className="metrics-grid">
+            <MetricCard
+              label="Chờ trung bình"
+              value={simulation.metrics.averageWaitingTime}
+              unit=" time"
+            />
+            <MetricCard
+              label="Hoàn thành trung bình"
+              value={simulation.metrics.averageTurnaroundTime}
+              unit=" time"
+            />
+            <MetricCard
+              label="Phản hồi trung bình"
+              value={simulation.metrics.averageResponseTime}
+              unit=" time"
+            />
+            <MetricCard
+              label="Hiệu suất CPU"
+              value={simulation.metrics.cpuUtilization}
+              unit="%"
+            />
+            <MetricCard
+              label="Throughput"
+              value={simulation.metrics.throughput}
+              unit="/time"
+            />
+            <MetricCard label="Tổng thời gian" value={simulation.metrics.totalTime} unit=" time" />
+          </div>
+        </section>
       </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+    </main>
   )
 }
 
