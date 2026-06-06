@@ -35,4 +35,18 @@ export class Process {
     isCompleted() {
         return this.remainingCpu == 0;
     }
+    clone() {
+        const cloned = new Process(
+            this.id,
+            this.arrivalTime,
+            this.burstTime,
+            this.ioStartTime,
+            this.ioTime,
+            this.remainingCpu,
+            this.remainingIo
+        );
+        cloned.stateHistory = [...this.stateHistory];
+        cloned.hasDoneIo = this.hasDoneIo;
+        return cloned;
+    }
 }

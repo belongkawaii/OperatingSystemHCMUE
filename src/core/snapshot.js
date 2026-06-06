@@ -7,5 +7,6 @@ export class Snapshot {
         for (let p of this.processes)
             if (!p.isCompleted())
                 return false;
+        return true;
     }
 }
