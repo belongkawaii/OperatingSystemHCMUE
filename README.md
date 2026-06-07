@@ -100,20 +100,34 @@ npm run lint
 ## Cấu trúc thư mục
 
 ```txt
-ShopmeeUI/
-│
+OPERATINGSYSTEMHCMUE/
+├── node_modules/
 ├── public/
-├── src/
-│   ├── assets/
-│   ├── components/
-│   ├── core
-│   ├── hooks
-│   ├── App.jsx
-│   └── main.jsx
-│
-├── package.json
-├── vite.config.js
-└── README.md
+│   ├── favicon.svg
+│   └── icons.svg
+└── src/
+    ├── assets/
+    │   ├── hero.png
+    │   ├── react.svg
+    │   └── vite.svg
+    ├── components/
+    │   ├── Control.jsx
+    │   ├── GanttChart.jsx
+    │   └── ProcessTable.jsx
+    ├── core/
+    │   ├── abstractions/
+    │   │   └── Scheduler.js
+    │   ├── FCFSScheduler.js
+    │   ├── FCFSScheduler.test.js
+    │   ├── Process.js
+    │   ├── RRScheduler.js
+    │   └── snapshot.js
+    ├── hooks/
+    │   └── useSimulator.js
+    ├── App.css
+    ├── App.jsx
+    ├── index.css
+    └── main.jsx
 ```
 
 ---
