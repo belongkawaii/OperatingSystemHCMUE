@@ -1,113 +1,267 @@
 import { Snapshot } from "../snapshot";
 
 export class Scheduler {
-    constructor(processes) {
-        if (new.target === Scheduler)
-            throw new Error("Scheduler is abstract and can't be instantiated.")
-
-        this._processes = processes;
-        this._readyQueue = [];
-        this._ioQueue = [];
-        this._currentTime = 0;
-        this._runningProcess = null;
-        this._runningIoProcess = null;
+  constructor(processes) {
+    if (
+      new.target === Scheduler
+    ) {
+      throw new Error(
+        "Scheduler is abstract."
+      );
     }
 
-    nextStep() {
-        // 1. Remove completed running process from CPU
-        if (this._runningProcess && this._runningProcess.isCompleted()) {
-            this._runningProcess = null;
-        }
+    this._processes =
+      processes;
 
-        // 2. Check for newly arriving processes
-        this.checkArrivals();
+    this._readyQueue = [];
 
-        // 3. Process I/O queue and transitions
-        this.processIo();
+    this._ioQueue = [];
 
-        // 4. Dispatch CPU to schedule the next process
-        this.dispatch();
+    this._runningProcess =
+      null;
 
-        // 5. Record the states of all processes for the current time step
-        this.recordStates();
+    this._runningIoProcess =
+      null;
 
-        // 6. Create a snapshot of the current state (cloning processes to preserve history)
-        const snapshot = new Snapshot(this._currentTime, this.cloneProcesses());
+    this._currentTime = 0;
+  }
 
-        // 7. Tick CPU and I/O processes for this time step
-        this.executeStep();
+  nextStep() {
 
-        // 8. Increment simulation time
-        this._currentTime++;
+    // ======================
+    // CPU COMPLETE
+    // ======================
 
-        return snapshot;
+    if (
+      this._runningProcess &&
+      this._runningProcess.isCompleted()
+    ) {
+      this._runningProcess.completionTime =
+        this._currentTime;
+
+      this._runningProcess =
+        null;
     }
 
-    checkArrivals() {
-        for (const p of this._processes) {
-            if (p.arrivalTime === this._currentTime) {
-                this._readyQueue.push(p);
-            }
-        }
+    // ======================
+    // ARRIVALS
+    // ======================
+
+    this.checkArrivals();
+
+    // ======================
+    // IO COMPLETE
+    // ======================
+
+    this.checkIoComplete();
+
+    // ======================
+    // CPU -> IO
+    // ======================
+
+    this.checkIoRequest();
+
+    // ======================
+    // START IO
+    // ======================
+
+    this.startIo();
+
+    // ======================
+    // DISPATCH
+    // ======================
+
+    this.dispatch();
+
+    // ======================
+    // WAITING TIME
+    // ======================
+
+    for (const p of this._readyQueue) {
+      p.waitingTime++;
     }
 
-    processIo() {
-        // Only the currently running process can execute and initiate an IO request
-        if (this._runningProcess && !this._runningProcess.hasDoneIo) {
-            const p = this._runningProcess;
-            if (p.ioStartTime !== null && p.ioStartTime !== undefined && p.ioStartTime >= 0) {
-                const elapsedCpu = p.burstTime - p.remainingCpu;
-                // Transition to IO queue if the CPU time it has executed matches its ioStartTime
-                // or if the global simulation time matches its ioStartTime.
-                if (elapsedCpu === p.ioStartTime || this._currentTime === p.ioStartTime) {
-                    this._runningProcess = null;
-                    this._ioQueue.push(p);
-                }
-            }
-        }
+    // ======================
+    // RESPONSE TIME
+    // ======================
 
-        // If the current running IO process has finished its IO duration, return it to the ready queue
-        if (this._runningIoProcess && this._runningIoProcess.remainingIo === 0) {
-            this._readyQueue.push(this._runningIoProcess);
-            this._runningIoProcess = null;
-        }
-
-        // If no process is currently running IO, start the next one in the queue
-        if (!this._runningIoProcess && this._ioQueue.length > 0) {
-            this._runningIoProcess = this._ioQueue.shift();
-        }
+    if (
+      this._runningProcess &&
+      this._runningProcess
+        .responseTime === null
+    ) {
+      this._runningProcess.responseTime =
+        this._currentTime -
+        this._runningProcess
+          .arrivalTime;
     }
 
-    dispatch() {
-        throw new Error("dispatch() must be implemented by subclass.")
+    // ======================
+    // RECORD STATE
+    // ======================
+
+    this.recordStates();
+
+    const snapshot =
+      new Snapshot(
+        this._currentTime,
+        this.cloneProcesses()
+      );
+
+    // ======================
+    // EXECUTE
+    // ======================
+
+    this.executeStep();
+
+    this._currentTime++;
+
+    return snapshot;
+  }
+
+  checkArrivals() {
+    for (const p of this._processes) {
+      if (
+        p.arrivalTime ===
+        this._currentTime
+      ) {
+        this._readyQueue.push(p);
+      }
+    }
+  }
+
+  checkIoComplete() {
+
+    if (
+      this._runningIoProcess &&
+      this._runningIoProcess
+        .remainingIo === 0
+    ) {
+
+      this._readyQueue.push(
+        this._runningIoProcess
+      );
+
+      this._runningIoProcess =
+        null;
+    }
+  }
+
+  checkIoRequest() {
+
+    if (
+      !this._runningProcess
+    )
+      return;
+
+    const p =
+      this._runningProcess;
+
+    if (p.hasDoneIo)
+      return;
+
+    const executed =
+      p.burstTime -
+      p.remainingCpu;
+
+    if (
+      p.ioStartTime >= 0 &&
+      executed ===
+        p.ioStartTime
+    ) {
+
+      this._ioQueue.push(p);
+
+      this._runningProcess =
+        null;
+    }
+  }
+
+  startIo() {
+
+    if (
+      !this._runningIoProcess &&
+      this._ioQueue.length > 0
+    ) {
+      this._runningIoProcess =
+        this._ioQueue.shift();
+    }
+  }
+
+  recordStates() {
+
+    for (const p of this._processes) {
+
+      if (p.isCompleted()) {
+
+        p.recordState(
+          "COMPLETED"
+        );
+
+      } else if (
+        p ===
+        this._runningProcess
+      ) {
+
+        p.recordState(
+          "RUNNING"
+        );
+
+      } else if (
+        p ===
+          this
+            ._runningIoProcess ||
+        this._ioQueue.includes(
+          p
+        )
+      ) {
+
+        p.recordState("IO");
+
+      } else if (
+        this._readyQueue.includes(
+          p
+        )
+      ) {
+
+        p.recordState(
+          "READY"
+        );
+
+      } else {
+
+        p.recordState(
+          "NOT_ARRIVED"
+        );
+      }
+    }
+  }
+
+  executeStep() {
+
+    if (
+      this._runningProcess
+    ) {
+      this._runningProcess.tickCpu();
     }
 
-    recordStates() {
-        for (const p of this._processes) {
-            if (p.isCompleted()) {
-                p.recordState("COMPLETED");
-            } else if (p === this._runningProcess) {
-                p.recordState("RUNNING");
-            } else if (p === this._runningIoProcess || this._ioQueue.includes(p)) {
-                p.recordState("IO");
-            } else if (this._readyQueue.includes(p)) {
-                p.recordState("READY");
-            } else {
-                p.recordState("NOT_ARRIVED");
-            }
-        }
+    if (
+      this._runningIoProcess
+    ) {
+      this._runningIoProcess.tickIo();
     }
+  }
 
-    executeStep() {
-        if (this._runningProcess) {
-            this._runningProcess.tickCpu();
-        }
-        if (this._runningIoProcess) {
-            this._runningIoProcess.tickIo();
-        }
-    }
+  cloneProcesses() {
 
-    cloneProcesses() {
-        return this._processes.map(p => p.clone());
-    }
+    return this._processes.map(
+      p => p.clone()
+    );
+  }
+
+  dispatch() {
+    throw new Error(
+      "dispatch() must be implemented."
+    );
+  }
 }

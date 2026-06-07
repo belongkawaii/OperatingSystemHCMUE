@@ -1,0 +1,588 @@
+/* ===== RESET ===== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #0f172a;
+  color: #f8fafc;
+  font-family:
+    "Segoe UI",
+    sans-serif;
+}
+
+/* ===== APP ===== */
+
+.app-container {
+  height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 16px;
+  gap: 16px;
+}
+
+/* ===== HEADER ===== */
+
+.top-header {
+  height: 80px;
+
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  background: #1e293b;
+
+  padding: 0 24px;
+
+  border-radius: 16px;
+
+  box-shadow:
+    0 4px 20px
+      rgba(0, 0, 0, 0.3);
+}
+
+.top-header h1 {
+  font-size: 28px;
+  color: #38bdf8;
+}
+
+.top-header p {
+  color: #94a3b8;
+  margin-top: 4px;
+}
+
+.header-badge {
+  background: #2563eb;
+
+  padding: 10px 16px;
+
+  border-radius: 12px;
+
+  font-weight: bold;
+}
+
+/* ===== DASHBOARD ===== */
+
+.dashboard {
+  flex: 1;
+
+  display: grid;
+
+  grid-template-columns:
+    380px
+    1fr;
+
+  grid-template-rows:
+    1fr
+    1fr;
+
+  gap: 16px;
+
+  overflow: hidden;
+}
+
+/* ===== PANELS ===== */
+
+.control-panel,
+.gantt-panel,
+.process-panel,
+.stats-panel {
+  background: #1e293b;
+
+  border-radius: 18px;
+
+  padding: 20px;
+
+  box-shadow:
+    0 4px 20px
+      rgba(0, 0, 0, 0.25);
+
+  overflow: hidden;
+}
+
+.control-panel,
+.process-panel {
+  overflow-y: auto;
+}
+
+.gantt-panel {
+  overflow: hidden;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.stats-panel {
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 20px;
+
+  overflow-y: auto;
+}
+
+/* ===== PANEL TITLES ===== */
+
+.panel-title {
+  font-size: 22px;
+
+  font-weight: 600;
+
+  margin-bottom: 18px;
+
+  color: #38bdf8;
+}
+
+/* ===== BUTTONS ===== */
+
+button {
+  cursor: pointer;
+
+  border: none;
+
+  border-radius: 10px;
+
+  transition: 0.2s;
+}
+
+button:hover {
+  transform: translateY(-2px);
+}
+
+/* ===== INPUT ===== */
+
+input,
+select {
+  width: 100%;
+
+  padding: 10px;
+
+  border-radius: 8px;
+
+  border: 1px solid #334155;
+
+  background: #0f172a;
+
+  color: white;
+}
+
+/* ===== SCROLLBAR ===== */
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}
+
+/* ===== STAT CARDS ===== */
+
+.stat-card {
+  background: #334155;
+
+  padding: 18px;
+
+  border-radius: 14px;
+
+  margin-bottom: 14px;
+
+  border-left: 5px solid #38bdf8;
+}
+
+.stat-card h3 {
+  font-size: 15px;
+
+  color: #cbd5e1;
+
+  margin-bottom: 8px;
+}
+
+.stat-card p {
+  font-size: 28px;
+
+  font-weight: bold;
+
+  color: white;
+}
+
+/* ===== TABLE ===== */
+
+table {
+  width: 100%;
+
+  border-collapse: collapse;
+}
+
+th,
+td {
+  border-bottom:
+    1px solid #334155;
+
+  padding: 10px;
+
+  text-align: center;
+}
+
+th {
+  color: #38bdf8;
+}
+
+/* ===== RESPONSIVE ===== */
+
+@media (max-width: 1200px) {
+  .dashboard {
+    grid-template-columns: 1fr;
+
+    grid-template-rows:
+      auto
+      auto
+      auto
+      auto;
+
+    overflow-y: auto;
+  }
+}
+
+/* ===================== */
+/* CONTROL PANEL */
+/* ===================== */
+
+.control-group {
+  margin-top: 20px;
+}
+
+.control-group label {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: #cbd5e1;
+}
+
+.primary-btn,
+.success-btn,
+.danger-btn,
+.secondary-btn,
+.reset-btn {
+  width: 100%;
+
+  padding: 12px;
+
+  margin-bottom: 12px;
+
+  color: white;
+
+  font-size: 15px;
+
+  font-weight: 600;
+}
+
+.primary-btn {
+  background: #2563eb;
+}
+
+.success-btn {
+  background: #16a34a;
+}
+
+.danger-btn {
+  background: #dc2626;
+}
+
+.secondary-btn {
+  background: #475569;
+}
+
+.reset-btn {
+  background: #ea580c;
+}
+
+.primary-btn:hover,
+.success-btn:hover,
+.danger-btn:hover,
+.secondary-btn:hover,
+.reset-btn:hover {
+  opacity: 0.9;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.status-box {
+  margin-top: 20px;
+
+  padding: 15px;
+
+  border-radius: 12px;
+
+  background: #0f172a;
+}
+
+.status-box h3 {
+  color: #38bdf8;
+
+  margin-bottom: 10px;
+}
+
+.status-box p {
+  margin-bottom: 6px;
+}
+
+/* ====================== */
+/* PROCESS TABLE */
+/* ====================== */
+
+.form-group {
+  margin-bottom: 16px;
+}
+
+.form-group label {
+  display: block;
+
+  margin-bottom: 8px;
+
+  color: #cbd5e1;
+}
+
+.process-table-wrapper {
+  margin-top: 20px;
+
+  overflow-x: auto;
+}
+
+.process-table-wrapper input {
+  width: 80px;
+}
+
+.delete-btn {
+  background: #dc2626;
+
+  color: white;
+
+  border: none;
+
+  padding: 8px 10px;
+
+  border-radius: 8px;
+
+  cursor: pointer;
+}
+
+.delete-btn:hover {
+  opacity: 0.8;
+}
+
+/* ====================== */
+/* STATS */
+/* ====================== */
+
+.stats-panel {
+  overflow-y: auto;
+}
+
+.stat-card {
+  transition: 0.25s;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+}
+
+/* ========================= */
+/* GANTT CHART */
+/* ========================= */
+
+.gantt-container {
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.legend {
+  display: flex;
+
+  gap: 20px;
+
+  margin-bottom: 15px;
+
+  font-size: 14px;
+}
+
+.legend div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend-box {
+  width: 18px;
+  height: 18px;
+
+  border-radius: 4px;
+}
+
+.running {
+  background: #22c55e;
+}
+
+.ready {
+  background: #f59e0b;
+}
+
+.io {
+  background: #3b82f6;
+}
+
+.completed {
+  background: #64748b;
+}
+
+.gantt-wrapper {
+
+  flex: 1;
+
+  overflow-x: auto;
+  overflow-y: auto;
+
+  border: 1px solid #334155;
+
+  border-radius: 10px;
+
+  padding: 10px;
+
+  background: #0f172a;
+}
+
+.time-row,
+.gantt-row {
+  display: flex;
+
+  margin-bottom: 6px;
+}
+
+.process-label {
+
+  width: 70px;
+
+  min-width: 70px;
+
+  font-weight: bold;
+
+  display: flex;
+  align-items: center;
+}
+
+.timeline {
+  display: flex;
+
+  min-width: max-content;
+}
+
+.time-cell {
+
+  width: 32px;
+  height: 32px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  color: #cbd5e1;
+
+  border: 1px solid #1e293b;
+}
+
+.gantt-cell {
+
+  width: 32px;
+  height: 32px;
+
+  border: 1px solid #1e293b;
+}
+
+/* STATES */
+
+.gantt-cell.RUNNING {
+  background: #22c55e;
+}
+
+.gantt-cell.READY {
+  background: #f59e0b;
+}
+
+.gantt-cell.IO {
+  background: #3b82f6;
+}
+
+.gantt-cell.COMPLETED {
+  background: #64748b;
+}
+
+.gantt-cell.NOT_ARRIVED {
+  background: #111827;
+}
+
+input:disabled,
+select:disabled,
+button:disabled {
+
+  opacity: 0.5;
+
+  cursor: not-allowed;
+}
+
+/* ========================= */
+/* PROCESS INFORMATION */
+/* ========================= */
+
+.process-info-table {
+
+  margin-top: 15px;
+
+  max-height: 250px;
+
+  overflow-y: auto;
+
+  border: 1px solid #334155;
+
+  border-radius: 10px;
+}
+
+.process-info-table table {
+  width: 100%;
+}
+
+.process-info-table th {
+  position: sticky;
+  top: 0;
+
+  background: #1e293b;
+
+  z-index: 2;
+}
+
+.process-info-table td,
+.process-info-table th {
+  padding: 10px;
+}
