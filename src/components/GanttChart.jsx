@@ -25,12 +25,11 @@ export default function GanttChart({ snapshots, blocks, currentStep, finished, p
     }));
   }, [visibleBlocks, colorMap]);
 
-  // Get total units for the Gantt chart from the LAST block's end time, 
-  // or from snapshots if finished.
+  // The user wants Total to reflect the current step count (1 for step 1, 2 for step 2, etc.)
   const totalUnits = useMemo(() => {
-    if (!snapshots || snapshots.length === 0) return 0;
-    return snapshots.length;
-  }, [snapshots]);
+    if (currentStep < 0) return 0;
+    return currentStep + 1;
+  }, [currentStep]);
 
   // Calculate Metrics if finished
   const metrics = useMemo(() => {
