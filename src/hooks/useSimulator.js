@@ -6,48 +6,11 @@ import { RRScheduler } from "../core/RRScheduler";
 
 const PLAY_INTERVAL = 800;
 
-/* ===========================
-   RANDOM PROCESS GENERATOR
-=========================== */
-
-function randomInt(min, max) {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
-}
-
 const PROCESS_COLORS = [
   "#FF6B6B", "#4ECDC4", "#45B7D1", "#FDCB6E", "#6C5CE7",
   "#FF8ED4", "#00CEC9", "#0984E3", "#D63031", "#E84393",
   "#A8E6CF", "#DCEDC1", "#FFAAA5", "#FF8B94", "#1E2761"
 ];
-
-function createRandomProcess(id) {
-  const arrivalTime = randomInt(0, 5);
-
-  const burstTime = randomInt(3, 10);
-
-  const useIo = Math.random() > 0.3;
-
-  const ioStartTime = useIo
-    ? randomInt(1, Math.max(1, burstTime - 1))
-    : null;
-
-  const ioTime = useIo
-    ? randomInt(1, 4)
-    : 0;
-
-  const colorIndex = (id - 1) % PROCESS_COLORS.length;
-  const color = PROCESS_COLORS[colorIndex];
-
-  return {
-    id: `P${id}`,
-    color,
-    arrivalTime,
-    burstTime,
-    priority: 0,
-    ioStartTime,
-    ioTime,
-  };
-}
 
 /* ===========================
    HOOK
@@ -60,14 +23,7 @@ export default function useSimulator() {
      PROCESS TABLE DATA
   =========================== */
 
-  const [processes, setProcesses] = useState(() => {
-    return [
-      createRandomProcess(1),
-      createRandomProcess(2),
-      createRandomProcess(3),
-      createRandomProcess(4),
-    ];
-  });
+  const [processes, setProcesses] = useState([]);
 
   /* ===========================
      SETTINGS
@@ -316,9 +272,20 @@ export default function useSimulator() {
       nextId++;
     }
 
+    const colorIndex = (nextId - 1) % PROCESS_COLORS.length;
+    const color = PROCESS_COLORS[colorIndex];
+
     setProcesses((prev) => [
       ...prev,
-      createRandomProcess(nextId),
+      {
+        id: `P${nextId}`,
+        color,
+        arrivalTime: 0,
+        burstTime: 0,
+        priority: 0,
+        ioStartTime: 0,
+        ioTime: 0,
+      },
     ]);
   }, [processes]);
 

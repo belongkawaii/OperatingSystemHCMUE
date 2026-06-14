@@ -1,4 +1,3 @@
-import React from 'react';
 import { Plus, X, ClipboardList } from 'lucide-react';
 
 export default function ProcessTable({

@@ -1,4 +1,3 @@
-import React from "react";
 import { Play, Pause, SkipForward, RotateCcw, Settings2, Check } from "lucide-react";
 
 export default function Control({

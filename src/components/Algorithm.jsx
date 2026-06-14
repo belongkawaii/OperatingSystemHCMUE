@@ -1,4 +1,3 @@
-import React from 'react';
 import { Settings, Check, X } from 'lucide-react';
 
 export default function Algorithm({ algorithm, setAlgorithm, quantum, setQuantum, disabled }) {

@@ -32,7 +32,7 @@ export class Scheduler {
         this.recordStates();
 
         // 6. Create a snapshot of the current state (cloning processes to preserve history)
-        const snapshot = new Snapshot(this._currentTime, this.cloneProcesses());
+        const snapshot = new Snapshot(this._currentTime, this.cloneProcesses(), this._runningIoProcess ? this._runningIoProcess.id : null);
 
         // 7. Tick CPU and I/O processes for this time step
         this.executeStep();
@@ -59,7 +59,7 @@ export class Scheduler {
                 const elapsedCpu = p.burstTime - p.remainingCpu;
                 // Transition to IO queue if the CPU time it has executed matches its ioStartTime
                 // or if the global simulation time matches its ioStartTime.
-                if (elapsedCpu === p.ioStartTime || this._currentTime === p.ioStartTime) {
+                if (elapsedCpu === p.ioStartTime) {
                     this._runningProcess = null;
                     this._ioQueue.push(p);
                 }

@@ -1,4 +1,3 @@
-import React from 'react';
 import ProcessTable from './components/ProcessTable';
 import Algorithm from './components/Algorithm';
 import Control from './components/Control';
