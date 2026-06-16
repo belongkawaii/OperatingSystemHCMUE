@@ -101,4 +101,22 @@ describe("FCFSScheduler", () => {
         expect(snap5.processes[0].stateHistory[5]).toBe("COMPLETED");
         expect(snap5.isFinished()).toBe(true);
     });
+
+    it("should NOT transition a process to IO queue if ioTime is 0, even if ioStartTime is positive", () => {
+        const pA = new Process("A", 0, 3, 1, 0, 3, 0);
+        const scheduler = new FCFSScheduler([pA]);
+
+        const snap0 = scheduler.nextStep();
+        expect(snap0.processes[0].stateHistory[0]).toBe("RUNNING");
+        
+        const snap1 = scheduler.nextStep();
+        expect(snap1.processes[0].stateHistory[1]).toBe("RUNNING");
+        
+        const snap2 = scheduler.nextStep();
+        expect(snap2.processes[0].stateHistory[2]).toBe("RUNNING");
+        
+        const snap3 = scheduler.nextStep();
+        expect(snap3.processes[0].stateHistory[3]).toBe("COMPLETED");
+        expect(snap3.isFinished()).toBe(true);
+    });
 });

@@ -55,7 +55,7 @@ export class Scheduler {
         // Only the currently running process can execute and initiate an IO request
         if (this._runningProcess && !this._runningProcess.hasDoneIo) {
             const p = this._runningProcess;
-            if (p.ioStartTime !== null && p.ioStartTime !== undefined && p.ioStartTime >= 0) {
+            if (p.ioStartTime !== null && p.ioStartTime !== undefined && p.ioStartTime >= 0 && p.ioTime > 0) {
                 const elapsedCpu = p.burstTime - p.remainingCpu;
                 // Transition to IO queue if the CPU time it has executed matches its ioStartTime
                 // or if the global simulation time matches its ioStartTime.

@@ -108,4 +108,22 @@ describe("RRScheduler", () => {
         expect(snap6.processes.find(p => p.id === "A").stateHistory[6]).toBe("COMPLETED");
         expect(snap6.isFinished()).toBe(true);
     });
+
+    it("should NOT transition a process to IO queue if ioTime is 0, even if ioStartTime is 0", () => {
+        const pA = new Process("A", 0, 3, 0, 0, 3, 0);
+        const scheduler = new RRScheduler([pA], 2);
+
+        const snap0 = scheduler.nextStep();
+        expect(snap0.processes[0].stateHistory[0]).toBe("RUNNING");
+        
+        const snap1 = scheduler.nextStep();
+        expect(snap1.processes[0].stateHistory[1]).toBe("RUNNING");
+        
+        const snap2 = scheduler.nextStep();
+        expect(snap2.processes[0].stateHistory[2]).toBe("RUNNING");
+        
+        const snap3 = scheduler.nextStep();
+        expect(snap3.processes[0].stateHistory[3]).toBe("COMPLETED");
+        expect(snap3.isFinished()).toBe(true);
+    });
 });

@@ -31,7 +31,7 @@ export class RRScheduler extends Scheduler {
         while (!this._runningProcess && this._readyQueue.length > 0) {
             const nextP = this._readyQueue[0];
             const elapsedCpu = nextP.burstTime - nextP.remainingCpu;
-            if (nextP.ioStartTime !== null && nextP.ioStartTime !== undefined && nextP.ioStartTime >= 0 && !nextP.hasDoneIo && elapsedCpu === nextP.ioStartTime) {
+            if (nextP.ioStartTime !== null && nextP.ioStartTime !== undefined && nextP.ioStartTime >= 0 && nextP.ioTime > 0 && !nextP.hasDoneIo && elapsedCpu === nextP.ioStartTime) {
                 const p = this._readyQueue.shift();
                 if (!this._runningIoProcess) {
                     this._runningIoProcess = p;
