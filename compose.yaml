@@ -1,11 +1,16 @@
 services:
   server:
-    build: 
+    image: ${APP_IMAGE:?APP_IMAGE is required}
+
+    build:
       context: .
-      dockerfile: Dockerfile 
+      dockerfile: Dockerfile
+      
     restart: unless-stopped
+
     ports:
-      - 8080:80
+      - "8080:80"
+
     healthcheck:
       test: curl -fsS -o /dev/null http://127.0.0.1:80/index.html
       interval: 15s
