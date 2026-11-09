@@ -1,4 +1,15 @@
 # ================================
+#          Prepare Stage
+# ================================
+FROM nginxinc/nginx-unprivileged:alpine3.22 AS preparer
+
+USER root
+
+RUN apk add --no-cache curl
+
+USER nginx
+
+# ================================
 #          Build Stage
 # ================================
 FROM node:24.12.0-alpine AS builder
@@ -16,7 +27,7 @@ RUN npm run build
 # ================================
 #          Run Stage
 # ================================
-FROM nginxinc/nginx-unprivileged:alpine3.22 AS runner
+FROM preparer AS runner
 
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
