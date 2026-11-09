@@ -126,4 +126,60 @@ describe("RRScheduler", () => {
         expect(snap3.processes[0].stateHistory[3]).toBe("COMPLETED");
         expect(snap3.isFinished()).toBe(true);
     });
+
+    it("should rotate three ready processes every tick when quantum is one", () => {
+        const scheduler = new RRScheduler([
+            new Process("A", 0, 2, null, 0, 2, 0),
+            new Process("B", 0, 2, null, 0, 2, 0),
+            new Process("C", 0, 2, null, 0, 2, 0),
+        ], 1);
+        const snapshots = Array.from({ length: 7 }, () => scheduler.nextStep());
+
+        expect(snapshots.map(s => s.processes.find(p =>
+            p.stateHistory[s.currentTime] === "RUNNING")?.id ?? null))
+            .toEqual(["A", "B", "C", "A", "B", "C", null]);
+        expect(snapshots[6].isFinished()).toBe(true);
+    });
+
+    it("should queue an arrival at the quantum boundary before the preempted process", () => {
+        const scheduler = new RRScheduler([
+            new Process("A", 0, 4, null, 0, 4, 0),
+            new Process("B", 2, 1, null, 0, 1, 0),
+        ], 2);
+        const snapshots = Array.from({ length: 6 }, () => scheduler.nextStep());
+
+        expect(snapshots.map(s => s.processes.find(p =>
+            p.stateHistory[s.currentTime] === "RUNNING")?.id ?? null))
+            .toEqual(["A", "A", "B", "A", "A", null]);
+        expect(snapshots[5].isFinished()).toBe(true);
+    });
+
+    it("should dispatch the next process immediately when a burst ends before its quantum", () => {
+        const scheduler = new RRScheduler([
+            new Process("A", 0, 1, null, 0, 1, 0),
+            new Process("B", 0, 2, null, 0, 2, 0),
+        ], 5);
+        const snapshots = Array.from({ length: 4 }, () => scheduler.nextStep());
+
+        expect(snapshots.map(s => s.processes.find(p =>
+            p.stateHistory[s.currentTime] === "RUNNING")?.id ?? null))
+            .toEqual(["A", "B", "B", null]);
+        expect(snapshots[3].isFinished()).toBe(true);
+    });
+
+    it("should defer I/O at a quantum boundary until the process reaches the head of the queue", () => {
+        const scheduler = new RRScheduler([
+            new Process("A", 0, 3, 2, 1, 3, 1),
+            new Process("B", 0, 3, null, 0, 3, 0),
+        ], 2);
+        const snapshots = Array.from({ length: 7 }, () => scheduler.nextStep());
+        const final = snapshots[6];
+
+        expect(final.processes.find(p => p.id === "A").stateHistory)
+            .toEqual(["RUNNING", "RUNNING", "READY", "READY", "IO", "RUNNING", "COMPLETED"]);
+        expect(final.processes.find(p => p.id === "B").stateHistory)
+            .toEqual(["READY", "READY", "RUNNING", "RUNNING", "RUNNING", "COMPLETED", "COMPLETED"]);
+        expect(final.isFinished()).toBe(true);
+    });
+
 });

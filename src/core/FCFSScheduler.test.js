@@ -119,4 +119,48 @@ describe("FCFSScheduler", () => {
         expect(snap3.processes[0].stateHistory[3]).toBe("COMPLETED");
         expect(snap3.isFinished()).toBe(true);
     });
+
+    it("should preserve input order when processes arrive at the same time", () => {
+        const scheduler = new FCFSScheduler([
+            new Process("B", 0, 2, null, 0, 2, 0),
+            new Process("A", 0, 1, null, 0, 1, 0),
+            new Process("C", 0, 1, null, 0, 1, 0),
+        ]);
+        const snapshots = Array.from({ length: 5 }, () => scheduler.nextStep());
+
+        expect(snapshots.map(s => s.processes.find(p =>
+            p.stateHistory[s.currentTime] === "RUNNING")?.id ?? null))
+            .toEqual(["B", "B", "A", "C", null]);
+        expect(snapshots[4].isFinished()).toBe(true);
+    });
+
+    it("should remain idle before arrivals and between processes even with unsorted input", () => {
+        const scheduler = new FCFSScheduler([
+            new Process("B", 4, 1, null, 0, 1, 0),
+            new Process("A", 2, 1, null, 0, 1, 0),
+        ]);
+        const snapshots = Array.from({ length: 6 }, () => scheduler.nextStep());
+
+        expect(snapshots.map(s => s.processes.find(p =>
+            p.stateHistory[s.currentTime] === "RUNNING")?.id ?? null))
+            .toEqual([null, null, "A", null, "B", null]);
+        expect(snapshots[0].isFinished()).toBe(false);
+        expect(snapshots[5].isFinished()).toBe(true);
+    });
+
+    it("should not preempt the CPU when another process returns from I/O", () => {
+        const scheduler = new FCFSScheduler([
+            new Process("A", 0, 2, 1, 1, 2, 1),
+            new Process("B", 0, 3, null, 0, 3, 0),
+        ]);
+        const snapshots = Array.from({ length: 6 }, () => scheduler.nextStep());
+        const final = snapshots[5];
+
+        expect(final.processes.find(p => p.id === "A").stateHistory)
+            .toEqual(["RUNNING", "IO", "READY", "READY", "RUNNING", "COMPLETED"]);
+        expect(final.processes.find(p => p.id === "B").stateHistory)
+            .toEqual(["READY", "RUNNING", "RUNNING", "RUNNING", "COMPLETED", "COMPLETED"]);
+        expect(final.isFinished()).toBe(true);
+    });
+
 });
