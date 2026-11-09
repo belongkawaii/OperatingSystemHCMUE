@@ -42,6 +42,9 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-24.04
 
+    outputs:
+      image_ref: ${{ steps.published.outputs.image_ref }}
+
     env:
       APP_IMAGE: ${{ vars.DOCKERHUB_USERNAME }}/${{ vars.DOCKERHUB_REPOSITORY }}:sha-${{ github.sha }}
 
@@ -60,3 +63,53 @@ jobs:
 
       - name: Push image to Docker Hub
         run: docker compose -p winnux -f compose.yaml push server
+
+      - name: Resolve published image digest
+        id: published
+        run: |
+          published_digest="$(docker buildx imagetools inspect "$APP_IMAGE" --format '{{json .Manifest}}' | jq -r '.digest')"
+          [[ "$published_digest" =~ ^sha256:[0-9a-f]{64}$ ]]
+          echo "image_ref=${APP_IMAGE%:*}@$published_digest" >> "$GITHUB_OUTPUT"
+
+  deploy:
+    name: Deploy to external server
+    needs: build_push
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    concurrency:
+      group: winnux-production
+      cancel-in-progress: false
+
+    steps:
+      - name: Checkout deployment files
+        uses: actions/checkout@v7
+
+      - name: Deploy over SSH
+        env:
+          SSH_HOST: ${{ vars.SSH_HOST }}
+          SSH_USER: ${{ vars.SSH_USER }}
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_KNOWN_HOSTS: ${{ secrets.SSH_KNOWN_HOSTS }}
+          IMAGE_REF: ${{ needs.build_push.outputs.image_ref }}
+        run: |
+          set -euo pipefail
+
+          current_head="$(git ls-remote origin refs/heads/main | cut -f1)"
+          if [[ "$current_head" != "$GITHUB_SHA" ]]; then
+            echo "Skip deployment of an outdated commit."
+            exit 0
+          fi
+
+          [[ "$IMAGE_REF" =~ ^[a-z0-9._/-]+@sha256:[0-9a-f]{64}$ ]]
+
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          printf '%s\n' "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          chmod 600 ~/.ssh/id_ed25519 ~/.ssh/known_hosts
+
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15 "$SSH_USER@$SSH_HOST" 'mkdir -p "$HOME/winnux"'
+          scp -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15 compose.yaml deploy.sh "$SSH_USER@$SSH_HOST:winnux/"
+          ssh -o BatchMode=yes -o StrictHostKeyChecking=yes -o ConnectTimeout=15 "$SSH_USER@$SSH_HOST" "bash winnux/deploy.sh '$IMAGE_REF'"
